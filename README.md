@@ -11,7 +11,7 @@ infrastructure-independent communication: useful in field deployments,
 emergency scenarios, or any environment where conventional networks are
 unavailable, untrusted, or degraded.
 
-> **Status:** prototype / research project. Not yet recommended for
+> **Status:** prototype / research project.
 
 ---
 
