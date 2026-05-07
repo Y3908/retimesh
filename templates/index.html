@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d1117">
+    <title>RetiMesh</title>
+    <!-- Inline SVG favicon: matches the RetiMesh brand mark (hexagon + dot).
+         Inlined as a data URL so it works offline on mesh-only networks
+         (consistent with the no-CDN policy below).  Uses currentColor-style
+         hard-coded blue (#3b82f6) so it renders correctly in light & dark
+         tab UIs without needing JS. -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%233b82f6' stroke='none'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%233b82f6' stroke='none'/%3E%3C/svg%3E">
+    <!-- Google Fonts CDN removed: adds ~150 ms RTT, leaks IP on mesh-only networks.
+         Fonts fall back to OS system stack (Inter/JetBrains Mono if installed locally,
+         otherwise the browser's native sans-serif / monospace). -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div id="app">
+
+    <!-- ─── Setup Wizard ─────────────────────────────────────────── -->
+    <div class="wizard-overlay hidden" id="wizard-overlay">
+
+        <div class="wizard-card" id="wizard-step-welcome">
+            <div class="wizard-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+            </div>
+            <h2>Welcome to RetiMesh</h2>
+            <p>Secure messaging, file sharing and voice calls<br>over the Reticulum mesh network.</p>
+            <svg class="wizard-diagram" viewBox="0 0 360 140" xmlns="http://www.w3.org/2000/svg">
+                <defs><clipPath id="scene-clip"><rect x="0" y="0" width="360" height="140" rx="8"/></clipPath></defs>
+                <g clip-path="url(#scene-clip)">
+                    <rect width="360" height="140" rx="8" fill="#0d1117" opacity="0.5"/>
+                    <circle cx="55" cy="70" r="22" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+                    <text x="55" y="74" text-anchor="middle" fill="#22c55e" font-size="11" font-weight="600" font-family="Inter,sans-serif">You</text>
+                    <circle cx="55" cy="70" r="8" fill="none" stroke="#22c55e" stroke-width="1">
+                        <animate attributeName="r" values="22;90" dur="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.5;0" dur="2.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="55" cy="70" r="8" fill="none" stroke="#22c55e" stroke-width="1">
+                        <animate attributeName="r" values="22;90" dur="2.5s" begin="0.8s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.5;0" dur="2.5s" begin="0.8s" repeatCount="indefinite"/>
+                    </circle>
+                    <line x1="130" y1="70" x2="210" y2="30" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"><animate attributeName="stroke-dashoffset" values="0;-16" dur="1.5s" repeatCount="indefinite"/></line>
+                    <line x1="130" y1="70" x2="210" y2="70" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"><animate attributeName="stroke-dashoffset" values="0;-16" dur="1.5s" repeatCount="indefinite"/></line>
+                    <line x1="130" y1="70" x2="210" y2="110" stroke="#8b949e" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"><animate attributeName="stroke-dashoffset" values="0;-16" dur="1.5s" repeatCount="indefinite"/></line>
+                    <circle cx="230" cy="30" r="16" fill="none" stroke="#8b949e" stroke-width="1"><animate attributeName="stroke" values="#8b949e;#22c55e;#8b949e" dur="2.5s" begin="0.7s" repeatCount="indefinite"/></circle>
+                    <text x="230" y="34" text-anchor="middle" fill="#8b949e" font-size="10" font-family="Inter,sans-serif">Peer</text>
+                    <circle cx="230" cy="70" r="16" fill="none" stroke="#8b949e" stroke-width="1"><animate attributeName="stroke" values="#8b949e;#22c55e;#8b949e" dur="2.5s" begin="1.2s" repeatCount="indefinite"/></circle>
+                    <text x="230" y="74" text-anchor="middle" fill="#8b949e" font-size="10" font-family="Inter,sans-serif">Peer</text>
+                    <circle cx="230" cy="110" r="16" fill="none" stroke="#8b949e" stroke-width="1"><animate attributeName="stroke" values="#8b949e;#22c55e;#8b949e" dur="2.5s" begin="1.7s" repeatCount="indefinite"/></circle>
+                    <text x="230" y="114" text-anchor="middle" fill="#8b949e" font-size="10" font-family="Inter,sans-serif">Peer</text>
+                </g>
+            </svg>
+            <p class="wizard-caption">Each device has a unique cryptographic identity.<br>Let's set yours up before you get started.</p>
+            <button class="btn btn-wizard-next" id="wizard-btn-to-identity">Next: Set up identity</button>
+        </div>
+
+        <div class="wizard-card hidden" id="wizard-step-identity">
+            <div class="wizard-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 19v2M8 19v2M2 10h20"/></svg>
+            </div>
+            <h2>Your Identity</h2>
+            <p>Every RetiMesh node needs a unique cryptographic keypair.<br>Choose how to set yours up:</p>
+            <div class="wizard-id-tabs">
+                <button class="wizard-id-tab active" id="wizard-tab-new" data-tab="new">Create New</button>
+                <button class="wizard-id-tab" id="wizard-tab-import" data-tab="import">Import Existing</button>
+            </div>
+            <div class="wizard-id-panel" id="wizard-panel-new">
+                <p class="wizard-id-hint">A new keypair will be generated and saved. No two identities are the same.</p>
+                <div class="wizard-field">
+                    <label for="wizard-id-name">Local alias <span style="font-weight:400;opacity:0.6">(only visible to you)</span></label>
+                    <input type="text" id="wizard-id-name" class="wizard-input" placeholder="e.g. Alice's Node" maxlength="64" autocomplete="off">
+                </div>
+                <div class="wizard-id-result hidden" id="wizard-new-result">
+                    <div class="wizard-id-hash-label">Your LXMF address</div>
+                    <code class="wizard-id-hash" id="wizard-new-hash">—</code>
+                    <div class="wizard-id-path-label">Saved to</div>
+                    <code class="wizard-id-path" id="wizard-new-path">—</code>
+                </div>
+                <button class="btn btn-wizard-action" id="wizard-btn-create-id">Generate identity</button>
+            </div>
+            <div class="wizard-id-panel hidden" id="wizard-panel-import">
+                <p class="wizard-id-hint">Paste the full path to an existing RNS identity file.</p>
+                <div class="wizard-field">
+                    <label for="wizard-import-path">Identity file path</label>
+                    <input type="text" id="wizard-import-path" class="wizard-input" placeholder="~/.reticulum/storage/identity" autocomplete="off">
+                </div>
+                <div class="wizard-field">
+                    <label for="wizard-import-name">Nickname for this identity</label>
+                    <input type="text" id="wizard-import-name" class="wizard-input" placeholder="e.g. Main Identity" maxlength="64" autocomplete="off">
+                </div>
+                <div class="wizard-id-result hidden" id="wizard-import-result">
+                    <div class="wizard-id-hash-label">Imported LXMF address</div>
+                    <code class="wizard-id-hash" id="wizard-import-hash">—</code>
+                </div>
+                <button class="btn btn-wizard-action" id="wizard-btn-import-id">Import identity</button>
+            </div>
+            <div class="wizard-id-error hidden" id="wizard-id-error"></div>
+            <button class="btn btn-wizard-finish" id="wizard-finish" disabled>Start using RetiMesh</button>
+        </div>
+    </div>
+
+    <!-- ─── Sidebar ─────────────────────────────────────────────── -->
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-header-top">
+                <div class="logo">
+                    <svg class="logo-hex" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+                    <span>RetiMesh</span>
+                </div>
+                <button class="btn-icon-round" id="btn-theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+                    <!-- icon set by JS -->
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+            <div class="identity-bar" id="identity-bar">
+                <div class="identity-top-row">
+                    <span class="identity-label">Active Identity</span>
+                    <button class="btn-icon-xs" id="btn-identity-manage" title="Manage Identities" aria-label="Manage Identities">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.5"/><line x1="13" y1="10" x2="19" y2="10"/><line x1="13" y1="14" x2="17" y2="14"/></svg>
+                    </button>
+                </div>
+                <div class="identity-name" id="identity-name">Default</div>
+                <code class="identity-hash" id="my-hash" title="Click to copy">loading...</code>
+            </div>
+            <button class="btn btn-announce" id="btn-announce" aria-label="Announce">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M5 12H3M12 5V3M12 21v-2M4.22 4.22l1.42 1.42M18.36 5.64l-1.42 1.42M20 12h-2M16.95 16.95l1.41 1.41M5.64 18.36l1.41-1.41"/><circle cx="12" cy="12" r="4"/></svg>
+                Announce
+            </button>
+        </div>
+
+        <div class="sidebar-nav">
+            <button class="sidebar-nav-btn active" id="nav-peers" data-view="peers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Peers
+            </button>
+            <button class="sidebar-nav-btn" id="nav-network" data-view="network">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M7 17.5l4.5-6.5M17 17.5l-4.5-6.5"/></svg>
+                Network
+            </button>
+            <button class="sidebar-nav-btn" id="nav-pages" data-view="pages">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Pages
+            </button>
+            <button class="sidebar-nav-btn" id="nav-groups" data-view="groups">
+                <div class="alert-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span class="group-nav-badge hidden" id="group-nav-badge">0</span>
+                </div>
+                Groups
+            </button>
+            <button class="sidebar-nav-btn" id="nav-alerts" data-view="alerts">
+                <div class="alert-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span class="alert-nav-badge hidden" id="alert-nav-badge">0</span>
+                </div>
+                Alerts
+            </button>
+        </div>
+
+        <!-- Peers view -->
+        <div class="sidebar-view" id="view-peers">
+            <div class="peer-list-header">
+                <span>Contacts</span>
+                <span class="peer-count" id="peer-count">0</span>
+            </div>
+            <!-- Message search bar (creative improvement) -->
+            <div class="peer-search-bar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="peer-search-input" placeholder="Search peers…" autocomplete="off">
+            </div>
+            <ul class="peer-list" id="peer-list">
+                <li class="peer-empty">No peers discovered yet.<br>Announce to start.</li>
+            </ul>
+        </div>
+
+        <!-- Network view -->
+        <div class="sidebar-view hidden" id="view-network">
+            <div class="net-dashboard">
+                <div class="net-stat">
+                    <span class="net-stat-value" id="net-uptime">—</span>
+                    <span class="net-stat-label">Uptime</span>
+                </div>
+                <div class="net-stat">
+                    <span class="net-stat-value" id="net-peers">0</span>
+                    <span class="net-stat-label">Peers</span>
+                </div>
+                <div class="net-stat">
+                    <span class="net-stat-value" id="net-paths">0</span>
+                    <span class="net-stat-label">Paths</span>
+                </div>
+                <div class="net-stat">
+                    <span class="net-stat-value" id="net-links">0</span>
+                    <span class="net-stat-label">Links</span>
+                </div>
+            </div>
+            <div class="net-section-label">Interfaces</div>
+            <div class="net-interfaces" id="net-interfaces">
+                <div class="settings-empty">Loading…</div>
+            </div>
+        </div>
+
+        <!-- Pages view -->
+        <div class="sidebar-view hidden" id="view-pages">
+            <div class="pages-host-section" id="pages-host-section">
+                <div class="page-host-label">Your Page Address</div>
+                <div class="page-host-address" id="page-host-address">Loading…</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Share this hash so others can browse your pages.</div>
+            </div>
+            <!-- My Pages list moved to main panel split-pane; hidden stub keeps JS compatible -->
+            <div id="my-pages-list" style="display:none"></div>
+            <div class="net-section-label" style="margin-top:10px;">Known Hosts</div>
+            <div id="nomadnet-nodes-list"><div class="settings-empty">No hosts discovered.</div></div>
+        </div>
+
+        <!-- Groups sidebar view -->
+        <div class="sidebar-view hidden" id="view-groups">
+            <div class="group-sidebar-header">
+                <span class="net-section-label" style="margin:0;">Groups</span>
+                <div class="alert-sidebar-header-actions">
+                    <button class="btn-icon-round" id="btn-group-create" title="Create new group" aria-label="Create group">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pending invites (shown if any) -->
+            <div id="group-invites-section" class="hidden">
+                <div class="group-section-label">Pending Invites</div>
+                <div id="group-invites-list"></div>
+            </div>
+
+            <!-- Group list -->
+            <div id="group-list">
+                <div class="settings-empty">No groups yet. Create one to get started.</div>
+            </div>
+        </div>
+
+        <!-- Alerts sidebar view -->
+        <div class="sidebar-view hidden" id="view-alerts">
+            <div class="alert-sidebar-header">
+                <span class="net-section-label" style="margin:0;">Emergency Broadcasts</span>
+                <div class="alert-sidebar-header-actions">
+                    <!-- Compose button removed: redundant with the prominent
+                         "+ New Alert" in the main panel header.  Keep only
+                         the mark-all-read action here. -->
+                    <button class="btn-icon-round" id="btn-alerts-read-all" title="Mark all read" aria-label="Mark all read">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="alert-sidebar-list">
+                <div class="settings-empty">No alerts yet.</div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="status-pill" id="status-pill">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Connecting…</span>
+            </div>
+            <div class="sidebar-footer-actions">
+                <button class="btn-icon-round" id="btn-help" title="Show tour" aria-label="Help">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 1 1 4.06 1.94L12 12.5"/><circle cx="12" cy="16.5" r="0.6" fill="currentColor"/></svg>
+                </button>
+                <button class="btn-icon-round" id="btn-settings" title="Settings" aria-label="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ─── Main Panel ──────────────────────────────────────────── -->
+    <main id="main-panel">
+
+        <!-- ─── Critical/SOS Alert Banner (hidden until a severe alert arrives) ─── -->
+        <div class="alert-banner hidden" id="alert-banner">
+            <div class="alert-banner-body">
+                <span class="alert-banner-sev" id="alert-banner-sev"></span>
+                <span class="alert-banner-text" id="alert-banner-text"></span>
+            </div>
+            <div class="alert-banner-actions">
+                <button class="alert-banner-view" id="alert-banner-view">View</button>
+                <button class="alert-banner-close" id="alert-banner-close" title="Dismiss banner">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Welcome screen -->
+        <div class="welcome" id="welcome-screen">
+            <div class="welcome-inner">
+                <div class="welcome-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg>
+                </div>
+                <h2>RetiMesh</h2>
+                <p>Encrypted mesh networking · No servers · No tracking</p>
+                <div class="welcome-steps">
+                    <div class="step">
+                        <span class="step-num">1</span>
+                        <div><strong>Announce</strong> your presence to the network</div>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">2</span>
+                        <div>Wait for <strong>peers</strong> to appear in the sidebar</div>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">3</span>
+                        <div>Select a peer and start <strong>communicating</strong></div>
+                    </div>
+                </div>
+                <div class="welcome-hint">Both sides must announce before they can discover each other.</div>
+                <!-- Mobile-only CTAs: on phones the sidebar is offscreen,
+                     so surface the two most common first actions here. -->
+                <div class="welcome-cta-mobile">
+                    <button class="btn btn-primary welcome-cta-btn" id="welcome-cta-announce">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M5 12H3M12 5V3M12 21v-2M4.22 4.22l1.42 1.42M18.36 5.64l-1.42 1.42M20 12h-2M16.95 16.95l1.41 1.41M5.64 18.36l1.41-1.41"/><circle cx="12" cy="12" r="4"/></svg>
+                        Announce
+                    </button>
+                    <button class="btn welcome-cta-btn" id="welcome-cta-peers">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Open peers
+                    </button>
+                </div>
+                <div class="welcome-shortcuts">
+                    <div class="shortcut-item"><kbd>Ctrl</kbd><kbd>K</kbd> Quick peer switch</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Visualizer -->
+        <div class="net-visualizer hidden" id="net-visualizer" role="img" aria-label="Network topology">
+            <div class="graph-toolbar">
+                <span class="graph-toolbar-hint">Drag · Scroll to zoom · Shift+drag to pan</span>
+                <button class="btn-graph-ctrl" id="btn-graph-zoom-out" title="Zoom out">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <button class="btn-graph-ctrl" id="btn-graph-zoom-in" title="Zoom in">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                </button>
+                <button class="btn-graph-ctrl" id="btn-graph-reset" title="Reset layout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.38"/></svg>
+                </button>
+            </div>
+            <canvas id="net-graph-canvas"></canvas>
+            <div class="net-vis-legend" aria-hidden="true">
+                <span class="net-vis-legend-item"><span class="legend-dot" style="background:#22c55e"></span> You</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-iface" style="background:rgba(139,148,158,0.18);border-color:#8b949e"></span> WiFi</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-iface" style="background:rgba(96,165,250,0.18);border-color:#60a5fa"></span> TCP</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-iface" style="background:rgba(167,139,250,0.18);border-color:#a78bfa"></span> UDP</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-iface" style="background:rgba(251,191,36,0.18);border-color:#fbbf24"></span> LoRa</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-iface" style="background:rgba(20,184,166,0.18);border-color:#14b8a6"></span> I2P</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-iface" style="background:rgba(59,130,246,0.18);border-color:#3b82f6"></span> Bluetooth</span>
+                <span class="net-vis-legend-item"><span class="legend-dot legend-dot-offline"></span> Offline</span>
+            </div>
+            <div class="graph-tooltip hidden" id="graph-tooltip"></div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div class="chat-panel hidden" id="chat-panel">
+            <div class="chat-header">
+                <div class="chat-peer-info">
+                    <div class="chat-avatar" id="chat-peer-avatar">—</div>
+                    <div class="chat-peer-meta">
+                        <span class="chat-peer-name" id="chat-peer-name">Peer</span>
+                        <div class="chat-peer-sub">
+                            <code class="chat-peer-hash" id="chat-peer-hash"></code>
+                            <span class="chat-iface-badge" id="chat-iface-badge"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-actions" role="toolbar">
+                    <!-- Message search (creative improvement) -->
+                    <button class="btn-icon-round has-tooltip" id="btn-msg-search" title="Search messages" aria-label="Search messages">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    </button>
+                    <button class="btn-icon-round has-tooltip" id="btn-contact-edit" title="Edit contact" aria-label="Edit contact">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="btn-icon-round has-tooltip" id="btn-pin-peer" title="Pin contact" aria-label="Pin contact">
+                        <svg class="icon-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-3v-5l2-2V4H5.5v3l2 2v5z"/></svg>
+                    </button>
+                    <button class="btn-icon-round has-tooltip" id="btn-block-peer" title="Block peer" aria-label="Block peer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </button>
+                    <button class="btn-icon-round has-tooltip" id="btn-clear-chat" title="Clear chat history" aria-label="Clear chat">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                    <button class="btn-icon-round has-tooltip btn-danger-hover" id="btn-remove-contact" title="Remove contact" aria-label="Remove contact">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/></svg>
+                    </button>
+                    <button class="btn-icon-round has-tooltip btn-call-action" id="btn-call" title="Voice call" aria-label="Voice call">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message search bar (hidden by default) -->
+            <div class="msg-search-bar hidden" id="msg-search-bar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="msg-search-input" placeholder="Search messages…" autocomplete="off">
+                <button class="btn-icon-xs" id="btn-msg-search-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="contact-edit-panel hidden" id="contact-edit-panel">
+                <div class="contact-edit-row">
+                    <label>Nickname</label>
+                    <input type="text" class="contact-edit-input" id="contact-nickname" placeholder="Friendly name" autocomplete="off">
+                </div>
+                <div class="contact-edit-row">
+                    <label>Notes</label>
+                    <input type="text" class="contact-edit-input" id="contact-notes" placeholder="Add a note…" autocomplete="off">
+                </div>
+                <div class="contact-edit-actions">
+                    <button class="btn btn-contact-save" id="btn-contact-save">Save</button>
+                    <button class="btn btn-contact-cancel" id="btn-contact-cancel">Cancel</button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messages-container">
+                <div class="messages-list" id="messages-list"></div>
+            </div>
+
+            <div class="compose-bar">
+                <button class="btn-icon-round" id="btn-attach" title="Attach file" aria-label="Attach">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                </button>
+                <button class="btn-voice-record" id="btn-voice-record" title="Record voice note" aria-label="Record voice note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:20px;height:20px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
+                <input type="text" class="compose-input" id="compose-input" placeholder="Message…" autocomplete="off">
+                <button class="btn btn-send" id="btn-send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+                <input type="file" id="file-input" class="hidden" multiple>
+            </div>
+        </div>
+
+        <!-- Alerts Main Dashboard — shown when Alerts tab is active.
+             Uses the otherwise-empty main panel area to display the
+             last-selected alert's full details and quick actions, so the
+             alerts workflow feels like chat rather than squeezing a list
+             into the sidebar with nothing on the right. -->
+        <div class="alerts-main hidden" id="alerts-main">
+            <div class="alerts-main-header">
+                <div class="alerts-main-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:22px;height:22px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Emergency Broadcasts
+                </div>
+                <button class="btn btn-alert-new" id="btn-alerts-main-new">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Alert
+                </button>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="alerts-main-stats">
+                <div class="alerts-stat-card sev-3">
+                    <div class="alerts-stat-num" id="alerts-stat-sos">0</div>
+                    <div class="alerts-stat-label">SOS</div>
+                </div>
+                <div class="alerts-stat-card sev-2">
+                    <div class="alerts-stat-num" id="alerts-stat-critical">0</div>
+                    <div class="alerts-stat-label">Critical</div>
+                </div>
+                <div class="alerts-stat-card sev-1">
+                    <div class="alerts-stat-num" id="alerts-stat-warning">0</div>
+                    <div class="alerts-stat-label">Warning</div>
+                </div>
+                <div class="alerts-stat-card sev-0">
+                    <div class="alerts-stat-num" id="alerts-stat-info">0</div>
+                    <div class="alerts-stat-label">Info</div>
+                </div>
+                <div class="alerts-stat-card unread">
+                    <div class="alerts-stat-num" id="alerts-stat-unread">0</div>
+                    <div class="alerts-stat-label">Unread</div>
+                </div>
+            </div>
+
+            <!-- Detail view: shows the alert clicked in the sidebar; otherwise empty state -->
+            <div class="alerts-main-detail" id="alerts-main-detail">
+                <div class="alerts-main-empty">
+                    <div class="alerts-main-empty-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="width:64px;height:64px;opacity:0.3;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    <div class="alerts-main-empty-title">Select an alert to view details</div>
+                    <div class="alerts-main-empty-sub">Emergency broadcasts from peers appear in the sidebar. Click one to read the full message and metadata here.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Chat Panel -->
+        <div class="group-chat-panel hidden" id="group-chat-panel">
+            <div class="group-chat-header">
+                <div class="group-chat-header-info">
+                    <div class="group-chat-avatar" id="group-chat-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <div>
+                        <div class="group-chat-name" id="group-chat-name">Group Name</div>
+                        <div class="group-chat-meta" id="group-chat-meta">0 members</div>
+                    </div>
+                </div>
+                <div class="group-chat-header-actions">
+                    <button class="btn-icon-round" id="btn-group-rename" title="Rename group" aria-label="Rename group" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="btn-icon-round" id="btn-group-info" title="Group info &amp; members" aria-label="Group info">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </button>
+                    <button class="btn-icon-round btn-danger-hover" id="btn-group-leave" title="Leave group" aria-label="Leave group">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="group-chat-messages" id="group-chat-messages">
+                <div class="chat-empty-hint">No messages yet. Say hello!</div>
+            </div>
+
+            <div class="group-chat-input-row">
+                <textarea class="group-chat-input" id="group-chat-input"
+                    placeholder="Message group…" rows="1" maxlength="4096"></textarea>
+                <button class="btn-icon-round btn-send" id="btn-group-send" title="Send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pages Panel -->
+        <div class="pages-main hidden" id="pages-main">
+            <div class="pages-tabs">
+                <button class="pages-tab active" data-ptab="browse" id="ptab-browse">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    Browse
+                </button>
+                <button class="pages-tab" data-ptab="host" id="ptab-host">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    My Pages
+                </button>
+            </div>
+
+            <!-- ── Browse Panel ───────────────────────────────────── -->
+            <div class="pages-panel" id="ppanel-browse">
+                <!-- Address bar -->
+                <div class="pages-addr-bar">
+                    <svg class="addr-globe-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <input type="text" class="pages-addr-input" id="page-address-input"
+                           placeholder="Enter a node hash or hash/path…" autocomplete="off" spellcheck="false">
+                    <button class="btn-pages-go" id="btn-page-go">Go</button>
+                    <button class="btn-icon-round" id="btn-bookmark-page" title="Bookmark this page" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    </button>
+                    <button class="btn-icon-round" id="btn-save-offline" title="Save page for offline" style="display:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                </div>
+
+                <!-- Body: sidebar + viewer -->
+                <div class="pages-browse-body">
+                    <!-- Left sidebar -->
+                    <div class="pages-browse-sidebar">
+                        <div class="pbs-section">
+                            <div class="pbs-section-hdr">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                                Bookmarks
+                            </div>
+                            <div class="pbs-list" id="bsidebar-bookmarks-body">
+                                <div id="bookmarks-list">
+                                    <div class="pbs-empty">No bookmarks yet.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pbs-section">
+                            <div class="pbs-section-hdr">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                History
+                                <button class="pbs-clear-btn" id="btn-clear-history" title="Clear all history">Clear</button>
+                            </div>
+                            <div class="pbs-list" id="bsidebar-history-body">
+                                <div id="history-list"><div class="pbs-empty">No history yet.</div></div>
+                            </div>
+                        </div>
+                        <div class="pbs-section">
+                            <div class="pbs-section-hdr">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Saved Pages
+                            </div>
+                            <div class="pbs-list" id="bsidebar-saved-body">
+                                <div id="saved-pages-list"><div class="pbs-empty">No saved pages yet.</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Page viewer -->
+                    <div class="page-viewer" id="page-viewer">
+                        <div class="page-viewer-empty">
+                            <div class="page-viewer-empty-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            </div>
+                            <div class="page-viewer-empty-title">Browse the Mesh</div>
+                            <div class="page-viewer-empty-desc">Enter a node hash above or click a bookmark to visit a page.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── My Pages Panel ─────────────────────────────────── -->
+            <div class="pages-panel hidden" id="ppanel-host">
+                <!-- Hidden compat stubs for JS tab-switching logic (class required by initPagesTabs querySelectorAll) -->
+                <button id="etab-my-pages" class="page-editor-tab" data-etab="my-pages" style="display:none"></button>
+                <button id="etab-new-page"  class="page-editor-tab" data-etab="new-page"  style="display:none"></button>
+                <select id="page-select" style="display:none"><option value="">— New page —</option></select>
+                <button id="btn-page-new"        style="display:none">+ New</button>
+                <button id="btn-new-page-compat" style="display:none">New</button>
+
+                <!-- Split-pane: page list | editor -->
+                <div class="page-editor-subpanel pages-host-split" id="epanel-my-pages"
+                     style="display:flex;flex-direction:row;padding:0;overflow:hidden;height:100%;">
+                    <!-- Left: page list -->
+                    <div class="pages-list-col" style="flex-shrink:0;">
+                        <div class="pages-list-col-header">
+                            <span class="pages-list-col-title">My Pages</span>
+                            <button class="btn-pages-new-page" onclick="document.getElementById('etab-new-page').click()" title="Create a new page">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                New Page
+                            </button>
+                        </div>
+                        <div id="my-pages-list-inner" class="page-list-inner"></div>
+                    </div>
+
+                    <!-- Right: editor or placeholder -->
+                    <div class="pages-editor-col" style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;">
+                        <!-- Empty state — hidden when editor card is open -->
+                        <div class="pages-editor-placeholder">
+                            <div class="pages-editor-ph-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            </div>
+                            <div class="pages-editor-ph-title">Select a page to edit</div>
+                            <div class="pages-editor-ph-desc">Choose a page from the list on the left, or create a new one.</div>
+                        </div>
+                        <!-- Editor card -->
+                        <div class="page-editor-card hidden" id="page-edit-card">
+                            <div class="page-editor-card-header">
+                                <span id="page-edit-card-title" class="page-editor-card-name"></span>
+                                <button class="btn-icon-xs" id="btn-page-edit-close" title="Close editor">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                            <div class="page-editor-fields">
+                                <div class="page-editor-field">
+                                    <label class="page-editor-label">Title</label>
+                                    <input type="text" class="page-editor-input" id="pe-title" placeholder="My Page" maxlength="200">
+                                </div>
+                                <div class="page-editor-field">
+                                    <label class="page-editor-label">Path</label>
+                                    <input type="text" class="page-editor-input" id="pe-path" placeholder="/index" maxlength="200">
+                                </div>
+                                <div class="page-editor-field">
+                                    <label class="page-editor-label">Format</label>
+                                    <select class="page-editor-input" id="pe-content-type">
+                                        <option value="mu">Micron Markup (.mu): NomadNet</option>
+                                        <option value="html">HTML</option>
+                                        <option value="text">Plain Text</option>
+                                    </select>
+                                    <div id="pe-format-hint" class="page-editor-hint"></div>
+                                </div>
+                                <div class="page-editor-field page-editor-field-grow">
+                                    <label class="page-editor-label">Content</label>
+                                    <textarea class="page-editor-textarea" id="pe-content" placeholder="Write your page content here…"></textarea>
+                                </div>
+                            </div>
+                            <div class="page-editor-actions">
+                                <button class="btn btn-primary" id="btn-page-save">Save Changes</button>
+                                <button class="btn btn-danger" id="btn-page-delete" style="display:none">Delete Page</button>
+                                <span class="page-editor-status" id="page-editor-status"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Page form (toggled by JS via etab-new-page) -->
+                <div class="page-editor-subpanel pages-new-panel hidden" id="epanel-new-page">
+                    <div class="pages-new-form">
+                        <div class="pages-new-form-hdr">
+                            <div>
+                                <div class="pages-new-form-title">Create New Page</div>
+                                <div class="pages-new-form-subtitle">Publish a page anyone on the mesh can visit using your node hash.</div>
+                            </div>
+                            <button class="btn btn-secondary pages-new-cancel" onclick="document.getElementById('etab-my-pages').click()">Cancel</button>
+                        </div>
+                        <div class="pages-new-form-body">
+                            <div class="page-editor-field">
+                                <label class="page-editor-label">Title</label>
+                                <input type="text" class="page-editor-input" id="pe-new-title" placeholder="My Page" maxlength="200">
+                            </div>
+                            <div class="page-editor-field">
+                                <label class="page-editor-label">Path</label>
+                                <input type="text" class="page-editor-input" id="pe-new-path" placeholder="/index" maxlength="200" value="/index">
+                            </div>
+                            <div class="page-editor-field">
+                                <label class="page-editor-label">Format</label>
+                                <select class="page-editor-input" id="pe-new-content-type">
+                                    <option value="mu">Micron Markup (.mu): NomadNet</option>
+                                    <option value="html">HTML</option>
+                                    <option value="text">Plain Text</option>
+                                </select>
+                                <div id="pe-new-format-hint" class="page-editor-hint"></div>
+                            </div>
+                            <div class="page-editor-field">
+                                <label class="page-editor-label">Content</label>
+                                <textarea class="page-editor-textarea" id="pe-new-content" placeholder="Write your page content here…" rows="12"></textarea>
+                            </div>
+                            <div class="page-editor-actions pages-new-actions">
+                                <button class="btn btn-primary" id="btn-new-page-save">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    Create Page
+                                </button>
+                                <span class="page-editor-status" id="page-new-editor-status"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ─── Call Overlay ──────────────────────────────────────── -->
+    <div class="call-overlay hidden" id="call-overlay">
+        <div class="call-card">
+            <div class="call-avatar" id="call-avatar">—</div>
+            <div class="call-status" id="call-status">Calling…</div>
+            <div class="call-peer" id="call-peer-name"></div>
+            <div class="call-timer" id="call-timer">00:00</div>
+            <div class="call-codec-info" id="call-codec-info"></div>
+            <div class="call-actions">
+                <button class="btn btn-call-accept hidden" id="btn-call-accept">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>
+                    Accept
+                </button>
+                <button class="btn btn-call-end" id="btn-call-end">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.34 1.85.573 2.81.7a2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 4.68 12"/><path d="M22 2 2 22"/></svg>
+                    End
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Codec picker modal removed — calls now initiate directly with µ-law
+         when the call button is pressed.  Codec selection was scrapped per
+         user request, so the modal markup is no longer needed. -->
+
+    <!-- ─── Identity Modal ───────────────────────────────────── -->
+    <div class="modal-overlay hidden" id="identity-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 19v2M8 19v2M2 10h20"/></svg>
+                    Manage Identities
+                </div>
+                <button class="btn-icon-round modal-close" id="btn-identity-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Each identity is a unique Ed25519/X25519 keypair with its own LXMF address.</p>
+                <div class="identity-create-bar">
+                    <input type="text" class="identity-create-input" id="identity-new-name" placeholder="New identity name" autocomplete="off">
+                    <button class="btn btn-create-identity" id="btn-create-identity">Create</button>
+                </div>
+                <div class="identity-list" id="identity-list">
+                    <div class="identity-list-empty">Loading identities…</div>
+                </div>
+                <div class="identity-note">Switching identities requires restarting. No messages are lost.</div>
+                <div class="identity-restart-bar">
+                    <button class="btn btn-restart" id="btn-identity-restart">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.38"/></svg>
+                        Restart RetiMesh
+                    </button>
+                </div>
+
+                <!-- ── Known Peers (seen via announce) ── -->
+                <div class="known-peers-section">
+                    <div class="known-peers-header">
+                        <div class="known-peers-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:14px;height:14px;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            Known Peers
+                        </div>
+                        <button class="btn btn-sm btn-secondary" id="btn-refresh-known-peers" title="Refresh peer list">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.38"/></svg>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="known-peers-desc">Peers discovered via Reticulum announce broadcasts.</div>
+                    <div class="known-peers-list" id="known-peers-list">
+                        <div class="identity-list-empty">Loading peers…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Alert Composer Modal ────────────────────────────── -->
+    <!-- ─── Create Group Modal ────────────────────────────────────── -->
+    <div class="modal-overlay hidden" id="create-group-modal">
+        <div class="modal-card" style="max-width:480px;width:95vw;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:18px;height:18px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    New Group
+                </div>
+                <button class="btn-icon-round modal-close" id="btn-create-group-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Private-only groups (channel mode removed).  A hidden
+                     input preserves the gtype for downstream code that still
+                     reads data-gtype; we just don't show a picker. -->
+                <input type="hidden" id="create-group-type" value="private">
+
+                <div class="settings-row" style="margin-top:6px;">
+                    <label class="page-editor-label">Name</label>
+                    <input type="text" class="page-editor-input" id="create-group-name"
+                        maxlength="64" placeholder="e.g. Field Team">
+                </div>
+
+                <div class="settings-row" style="margin-top:10px;" id="create-group-members-row">
+                    <label class="page-editor-label">Add Members (optional)</label>
+                    <div class="group-member-picker" id="group-member-picker">
+                        <div class="settings-empty" style="font-size:11px;padding:8px 0;">No peers available. Announce first to discover peers.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:10px 20px 18px;">
+                <button class="btn btn-secondary" id="btn-create-group-cancel">Cancel</button>
+                <button class="btn btn-primary" id="btn-create-group-confirm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Create Group
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Join Channel Modal ─────────────────────────────────────── -->
+    <div class="modal-overlay hidden" id="join-channel-modal">
+        <div class="modal-card" style="max-width:400px;width:95vw;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:18px;height:18px"><path d="M4 6h16M4 12h16M4 18h7"/><path d="m16 18 2 2 4-4"/></svg>
+                    Join Channel
+                </div>
+                <button class="btn-icon-round modal-close" id="btn-join-channel-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;">
+                    Enter a channel name. Anyone who types the same name will be in the same channel;
+                    the name determines the channel ID.
+                </p>
+                <div class="settings-row">
+                    <label class="page-editor-label">Channel Name</label>
+                    <input type="text" class="page-editor-input" id="join-channel-name"
+                        maxlength="64" placeholder="e.g. general, field-ops, rescue-team">
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:10px 20px 18px;">
+                <button class="btn btn-secondary" id="btn-join-channel-cancel">Cancel</button>
+                <button class="btn btn-primary" id="btn-join-channel-confirm">Join Channel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Group Info / Members Modal ───────────────────────────────── -->
+    <div class="modal-overlay hidden" id="group-info-modal">
+        <div class="modal-card" style="max-width:420px;width:95vw;">
+            <div class="modal-header">
+                <div class="modal-title" id="group-info-modal-title">Group Info</div>
+                <button class="btn-icon-round modal-close" id="btn-group-info-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" style="padding-bottom:4px;">
+                <div class="group-info-type-row" id="group-info-type-row"></div>
+                <div class="settings-row" style="margin-top:10px;">
+                    <label class="page-editor-label">Members</label>
+                    <div id="group-info-members-list" class="group-info-members"></div>
+                </div>
+                <div class="settings-row" style="margin-top:12px;" id="group-info-add-row">
+                    <label class="page-editor-label">Add Member</label>
+                    <div style="display:flex;gap:6px;">
+                        <input type="text" class="page-editor-input" id="group-info-add-hash"
+                            placeholder="Peer hash…" style="flex:1;font-family:var(--font-mono);font-size:11px;">
+                        <button class="btn btn-primary" id="btn-group-info-add" style="flex-shrink:0;">Add</button>
+                    </div>
+                    <div id="group-info-add-picker" class="group-member-picker" style="margin-top:6px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:10px 20px 18px;">
+                <button class="btn btn-danger" id="btn-group-info-leave">Leave Group</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="alert-composer-modal">
+        <div class="modal-card" style="max-width:460px;width:95vw;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Send Emergency Broadcast
+                </div>
+                <button class="btn-icon-round modal-close" id="btn-alert-composer-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-composer-severity-row">
+                    <button class="alert-sev-btn" data-sev="0">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Info
+                    </button>
+                    <button class="alert-sev-btn" data-sev="1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Warning
+                    </button>
+                    <button class="alert-sev-btn active" data-sev="2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Critical
+                    </button>
+                    <button class="alert-sev-btn" data-sev="3">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><circle cx="12" cy="21" r="1" fill="currentColor" stroke="none"/></svg>
+                        SOS
+                    </button>
+                </div>
+
+                <div class="settings-row" style="margin-top:14px;">
+                    <label class="page-editor-label">Title <span style="font-weight:400;text-transform:none;letter-spacing:0">(required · max 64 chars)</span></label>
+                    <input type="text" class="page-editor-input" id="alert-composer-title" maxlength="64" placeholder="Brief description of the situation">
+                    <div class="alert-char-count"><span id="alert-title-count">0</span>/64</div>
+                </div>
+
+                <div class="settings-row" style="margin-top:10px;">
+                    <label class="page-editor-label">Details <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional · max 72 chars)</span></label>
+                    <textarea class="page-editor-input" id="alert-composer-message" maxlength="72" rows="2" placeholder="Additional info, location, instructions…" style="resize:none;font-family:var(--font-ui);"></textarea>
+                    <div class="alert-char-count"><span id="alert-msg-count">0</span>/72</div>
+                </div>
+
+                <div class="alert-composer-warning">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:14px;height:14px;flex-shrink:0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    This message will propagate to <strong>all reachable RetiMesh nodes</strong> in the mesh. Only send alerts for genuine situations.
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px;padding:10px 20px 18px;">
+                <button class="btn btn-secondary" id="btn-alert-composer-cancel">Cancel</button>
+                <button class="btn btn-alert-send" id="btn-alert-composer-send">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+                    Broadcast
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Settings Modal ───────────────────────────────────── -->
+    <div class="modal-overlay hidden" id="settings-modal">
+        <div class="modal-card modal-card-wide">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                    Settings
+                </div>
+                <button class="btn-icon-round modal-close" id="btn-settings-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-tab="general">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                        General
+                    </button>
+                    <button class="settings-tab" data-tab="blocked">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                        Blocked
+                    </button>
+                    <button class="settings-tab" data-tab="rns-config">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M7 17.5l4.5-6.5M17 17.5l-4.5-6.5"/></svg>
+                        Network
+                    </button>
+                    <button class="settings-tab" data-tab="bluetooth">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+                        Bluetooth
+                    </button>
+                    <button class="settings-tab" data-tab="alerts-settings">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        Alerts
+                    </button>
+                    <button class="settings-tab" data-tab="dependencies" id="settings-tab-deps">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        Dependencies
+                    </button>
+                </div>
+
+                <!-- General tab -->
+                <div class="settings-panel" id="settings-general">
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Auto-Announce</div>
+                            <div class="settings-row-desc">Broadcast your presence so new peers can find you.</div>
+                        </div>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-auto-announce" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Announce Interval</div>
+                            <div class="settings-row-desc">How often to auto-announce (seconds).</div>
+                        </div>
+                        <div class="settings-interval">
+                            <input type="number" class="interval-input" id="announce-interval" min="10" max="300" value="30" step="5">
+                            <span class="interval-unit">sec</span>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Transport Node</div>
+                            <div class="settings-row-desc">Route mesh traffic for other nodes. Restart required.</div>
+                        </div>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-transport"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Propagation Node</div>
+                            <div class="settings-row-desc">Act as a store-and-forward relay. Messages for offline peers are held here until they reconnect. Others can point their outbound propagation node at the hash below.</div>
+                        </div>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-propagation-host"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row" id="propagation-host-info-row" style="display:none;">
+                        <div class="settings-row-info" style="width:100%;">
+                            <div class="settings-row-label">Your Propagation Hash</div>
+                            <div class="settings-row-desc" style="font-family:monospace;word-break:break-all;user-select:all;" id="propagation-host-hash">—</div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info" style="width:100%;">
+                            <div class="settings-row-label">Outbound Propagation Node</div>
+                            <div class="settings-row-desc">Hash of a remote propagation node to use for your own store-and-forward. Leave blank to use direct delivery only.</div>
+                            <div style="display:flex;gap:8px;margin-top:8px;">
+                                <input type="text" id="outbound-propagation-input"
+                                       style="flex:1;padding:8px 10px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:monospace;font-size:12px;"
+                                       placeholder="paste hash…" autocomplete="off" spellcheck="false">
+                                <button class="btn btn-primary btn-sm" id="btn-outbound-propagation-save">Save</button>
+                                <button class="btn btn-secondary btn-sm" id="btn-outbound-propagation-sync" title="Request queued messages from this propagation node">Sync</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Notification Sounds</div>
+                            <div class="settings-row-desc">Play a sound when a message is received.</div>
+                        </div>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-sounds" checked><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Voice Note Quality</div>
+                            <div class="settings-row-desc">Higher quality sounds crisper but uses more bandwidth. Low works well on LoRa.</div>
+                        </div>
+                        <select id="voice-quality-select" class="page-editor-input" style="width:auto;min-width:220px;">
+                            <option value="low">Low &middot; 8 kHz &middot; ~60 KB/min</option>
+                            <option value="medium">Medium &middot; 16 kHz &middot; ~120 KB/min</option>
+                            <option value="high">High &middot; 24 kHz &middot; ~180 KB/min</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Mark Peer Offline After</div>
+                            <div class="settings-row-desc">How long without an announce before a peer is shown as offline. Default 5 minutes.</div>
+                        </div>
+                        <div class="ui-scale-control">
+                            <input type="number" id="offline-threshold-input"
+                                   min="1" max="1440" step="1" value="5"
+                                   aria-label="Mark peer offline after (minutes)"
+                                   class="page-editor-input"
+                                   style="width:80px;text-align:right;">
+                            <span class="ui-scale-label">min</span>
+                        </div>
+                    </div>
+                    <div class="settings-row settings-row-scale">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">UI Scale</div>
+                            <div class="settings-row-desc">Adjust the overall size of text and interface elements (75-150%).</div>
+                        </div>
+                        <div class="ui-scale-control">
+                            <input type="number" id="ui-scale-slider"
+                                   min="75" max="150" step="5" value="100"
+                                   aria-label="UI Scale"
+                                   class="page-editor-input"
+                                   style="width:80px;text-align:right;">
+                            <span class="ui-scale-label">%</span>
+                        </div>
+                    </div>
+
+                    <!-- Reset / wipe data section -->
+                    <div class="settings-row" style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label" style="color:var(--red,#ef4444);">Reset Data</div>
+                            <div class="settings-row-desc">Wipe stored data from the database. Identity and config are preserved unless you choose Full Reset.</div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                            <select id="wipe-scope-select" class="page-editor-input" style="width:auto;min-width:160px;">
+                                <option value="messages">Chat history</option>
+                                <option value="groups">Groups</option>
+                                <option value="alerts">Alerts</option>
+                                <option value="files">Files + transfers</option>
+                                <option value="peers">Peer list</option>
+                                <option value="all" selected>Everything (keep identity)</option>
+                                <option value="nuclear">Full reset (incl. identity)</option>
+                            </select>
+                            <button class="btn btn-danger" id="btn-wipe-data">Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blocked tab -->
+                <div class="settings-panel hidden" id="settings-blocked">
+                    <div class="block-manual-row">
+                        <input type="text" class="block-hash-input" id="block-manual-hash"
+                               placeholder="Paste identity/destination hash to block…" autocomplete="off" spellcheck="false">
+                        <input type="text" class="block-reason-input" id="block-manual-reason"
+                               placeholder="Reason (optional)" maxlength="200">
+                        <button class="btn btn-block-manual" id="btn-block-manual">Block</button>
+                    </div>
+                    <div class="blocked-list" id="blocked-list">
+                        <div class="settings-empty">No blocked peers.</div>
+                    </div>
+                </div>
+
+                <!-- RNS Config tab -->
+                <div class="settings-panel hidden" id="settings-rns-config">
+                    <p class="settings-desc">Manage Reticulum network interfaces. Changes require a restart.</p>
+                    <div class="iface-list" id="iface-config-list">
+                        <div class="settings-empty">Loading interfaces…</div>
+                    </div>
+                    <div class="iface-add-section">
+                        <div class="net-section-label">Add Interface</div>
+                        <div class="iface-add-form">
+                            <select class="iface-select" id="iface-type-select">
+                                <option value="">Select interface type…</option>
+                                <option value="AutoInterface">AutoInterface (Local Discovery)</option>
+                                <option value="TCPServerInterface">TCP Server</option>
+                                <option value="TCPClientInterface">TCP Client</option>
+                                <option value="UDPInterface">UDP Interface</option>
+                                <option value="I2PInterface">I2P Interface</option>
+                                <option value="RNodeInterface">RNode / LoRa</option>
+                                <option value="YggdrasilListen">Yggdrasil: Listen (host)</option>
+                                <option value="YggdrasilConnect">Yggdrasil: Connect to peer</option>
+                            </select>
+                            <div class="iface-fields" id="iface-fields"></div>
+                            <button class="btn btn-add-iface" id="btn-add-iface">Add Interface</button>
+                        </div>
+                    </div>
+                    <details class="raw-config-details">
+                        <summary>Advanced: Raw Config Editor</summary>
+                        <textarea class="rns-config-editor" id="rns-config-editor" spellcheck="false"></textarea>
+                        <div class="settings-actions">
+                            <button class="btn btn-save-config" id="btn-save-rns-config">Save Config</button>
+                            <span class="settings-config-status" id="rns-config-status"></span>
+                        </div>
+                    </details>
+                    <div class="restart-section">
+                        <div class="restart-info">Interface changes take effect after a restart. No messages are lost.</div>
+                        <button class="btn btn-restart" id="btn-restart-rns">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-4.38"/></svg>
+                            Restart RetiMesh
+                        </button>
+                        <div class="restart-status hidden" id="restart-status">Restarting… reconnecting…</div>
+                    </div>
+                </div>
+
+                <!-- Bluetooth tab -->
+                <div class="settings-panel hidden" id="settings-bluetooth">
+                    <div id="bt-unavailable-banner" class="bt-banner bt-banner-warn hidden">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Bluetooth dependencies not installed. Run <code>pip install bleak bless</code> then restart.
+                    </div>
+                    <div id="bt-available-banner" class="bt-banner bt-banner-ok hidden">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Bluetooth ready, interfaces connect automatically on startup.
+                    </div>
+                    <div class="net-section-label">Configured Interfaces</div>
+                    <div class="bt-iface-list" id="bt-iface-list">
+                        <div class="settings-empty">No Bluetooth interfaces configured.</div>
+                    </div>
+                    <!-- BLE device discovery scan -->
+                    <div class="bt-scan-section">
+                        <div class="net-section-label" style="margin-top:14px;">Nearby BLE Devices</div>
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                            <button class="btn btn-secondary btn-sm" id="btn-bt-scan">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                Scan for BLE Devices
+                            </button>
+                            <span style="font-size:11px;color:var(--text-muted)">Scans host Bluetooth adapter directly (5 s)</span>
+                        </div>
+                        <div class="bt-scan-results hidden" id="bt-scan-results"></div>
+                    </div>
+
+                    <div class="iface-add-section" id="bt-add-section">
+                        <div class="net-section-label">Add Bluetooth Interface</div>
+                        <div class="bt-add-form">
+                            <div class="bt-form-row">
+                                <label class="bt-label">Name</label>
+                                <input type="text" id="bt-name" class="bt-input" placeholder="BT0" value="BT0" maxlength="32">
+                            </div>
+                            <div class="bt-form-row">
+                                <label class="bt-label">Mode</label>
+                                <select id="bt-mode" class="bt-select">
+                                    <option value="ble" selected>BLE (all platforms)</option>
+                                    <option value="rfcomm">RFCOMM (Linux only)</option>
+                                </select>
+                            </div>
+                            <div class="bt-form-row">
+                                <label class="bt-label">Scan Interval (s)</label>
+                                <input type="number" id="bt-scan-interval" class="bt-input-small" min="5" max="300" value="30" step="5">
+                            </div>
+                            <div class="bt-form-row">
+                                <label class="bt-label">Max Peers</label>
+                                <input type="number" id="bt-max-peers" class="bt-input-small" min="1" max="20" value="8">
+                            </div>
+                            <div class="bt-form-row">
+                                <label class="bt-label">MTU</label>
+                                <input type="number" id="bt-target-mtu" class="bt-input-small" min="23" max="512" value="512" step="1">
+                            </div>
+                            <div class="bt-form-row">
+                                <label class="bt-label">Static Peers</label>
+                                <input type="text" id="bt-static-peers" class="bt-input" placeholder="MAC1,MAC2 (leave blank for auto-discovery)">
+                            </div>
+                            <div class="bt-form-row">
+                                <label class="bt-label">Discoverable</label>
+                                <label class="toggle-switch"><input type="checkbox" id="bt-discoverable" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="bt-form-actions">
+                                <button class="btn btn-primary" id="btn-bt-add">Add Interface</button>
+                                <span class="bt-status-msg" id="bt-add-status"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts settings panel -->
+                <div class="settings-panel hidden" id="settings-alerts-settings">
+                    <div class="settings-row">
+                        <div class="settings-row-info">
+                            <div class="settings-row-label">Receive Emergency Broadcasts</div>
+                            <div class="settings-row-desc">When enabled, alerts sent by other RetiMesh nodes will appear in your Alerts panel. Disable to silence all incoming broadcasts.</div>
+                        </div>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-alerts-enabled" checked><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+
+                <!-- Dependencies tab -->
+                <div class="settings-panel hidden" id="settings-dependencies">
+                    <p class="settings-desc">Optional Python packages extend RetiMesh with Bluetooth support. Install them here without leaving the app.</p>
+                    <div id="deps-list" class="deps-list">
+                        <div class="settings-empty">Checking dependencies…</div>
+                    </div>
+                    <div class="deps-actions" id="deps-actions" style="display:none;">
+                        <button class="btn btn-primary" id="btn-install-missing">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Install Missing Packages
+                        </button>
+                        <span class="settings-config-status" id="deps-status"></span>
+                    </div>
+                    <div class="deps-output-box hidden" id="deps-output-box">
+                        <pre class="deps-output" id="deps-output"></pre>
+                    </div>
+                    <p class="settings-desc" style="margin-top:12px;font-size:11px;">
+                        A restart is required after installing packages for them to take effect.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Spotlight Tour ───────────────────────────────────── -->
+    <div class="tour-shell hidden" id="tour-shell" role="dialog" aria-modal="true">
+        <div class="tour-spotlight" id="tour-spotlight"></div>
+        <div class="tour-card" id="tour-card">
+            <div class="tour-card-icon" id="tour-card-icon" aria-hidden="true"></div>
+            <div class="tour-card-title" id="tour-card-title"></div>
+            <div class="tour-card-desc" id="tour-card-desc"></div>
+            <div class="tour-card-footer">
+                <div class="tour-dots" id="tour-dots"></div>
+                <div class="tour-card-actions">
+                    <button class="btn btn-tour-skip" id="btn-tour-skip">Skip</button>
+                    <button class="btn btn-tour-next" id="btn-tour-next">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Peer Switcher (Ctrl+K) — creative improvement -->
+    <div class="quick-switcher-overlay hidden" id="quick-switcher-overlay">
+        <div class="quick-switcher">
+            <div class="quick-switcher-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" id="quick-switcher-input" placeholder="Jump to a peer…" autocomplete="off">
+                <kbd>Esc</kbd>
+            </div>
+            <div class="quick-switcher-list" id="quick-switcher-list"></div>
+        </div>
+    </div>
+
+</div><!-- #app -->
+
+<div class="toast-container" id="toast-container"></div>
+<button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Toggle sidebar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

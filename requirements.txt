@@ -1,0 +1,24 @@
+# RetiMesh Dependencies — Python 3.10 → 3.14 compatible
+#
+# CRITICAL: rns and lxmf wire formats change between minor versions.
+# All nodes on the same mesh MUST run the same major.minor of both libraries.
+# The floor pins below assume you're using the current RNS 1.x / LXMF 0.9+
+# generation.  If you're stuck on an older fleet, pin everyone to the same
+# older pair (e.g. rns==0.7.9 / lxmf==0.4.5).
+
+# Core mesh
+rns>=1.1.0
+lxmf>=0.9.0
+
+# Web server + WebSocket transport
+flask>=3.0
+# gevent 26.x is the first series with Python 3.14 support.
+# (https://www.gevent.org/changelog.html)
+gevent>=26.0
+# gevent-websocket 0.10.1 is pure-Python; the WebSocket handshake is stable
+# protocol code that doesn't need updates for newer Python versions.
+gevent-websocket>=0.10.1
+
+# Audio (optional — for codec2 comparison)
+# pycodec2>=3.0   # uncomment if codec2 is available on your system
+# numpy>=1.26     # required by pycodec2 on Python 3.12+
